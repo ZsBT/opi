@@ -12,7 +12,7 @@
 
 import smbus
 import time
-
+from syslog import syslog as sylog
 
 LCD_WIDTH = 16   # Maximum characters per line
 LCD_CHR = 1 # Mode - Sending data
@@ -48,7 +48,7 @@ class lcd1602:
       ( self.I2C_BUS, self.I2C_ADDR ) = self.deviceSearch( POSSIBLE_ADDRESSES, bus )
 
     if self.I2C_BUS == -1 :
-      raise Exception('Device not found')
+      raise lcd1602.DeviceNotFound('nothing on POSSIBLE_ADDRESSES' )
 
     self.bus = smbus.SMBus(self.I2C_BUS)
     self.lcd_init()
@@ -128,10 +128,15 @@ class lcd1602:
   def line1(self,message):
     self.lcd_string(message,LCD_LINE_1)
     if self.stdout:
-      print("LCD.1: "+message)
+      sylog("%sLCD#1: %s" % ('*' if self.BACKLIGHT==lcd1602.BACKLIGHT_ON else '', message))
 
   def line2(self,message):
     self.lcd_string(message,LCD_LINE_2)
     if self.stdout:
-      print("LCD.2: "+message)
+      sylog("%sLCD#2: %s" % ('*' if self.BACKLIGHT==lcd1602.BACKLIGHT_ON else '', message))
+
+
+
+  class DeviceNotFound(Exception):
+    ''' there is no 1602 device '''
 

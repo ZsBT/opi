@@ -1,0 +1,35 @@
+#!/usr/bin/python
+#
+#	control an output gpio port depending on system temperature
+#
+
+
+import time,sys
+from zsopi import gpiopin
+from syslog import syslog as sylog
+
+
+
+def sysTemperature():
+  with open("/sys/class/thermal/thermal_zone1/temp",'r') as fil:        
+    celsius = fil.read().strip()
+    fil.close()
+  return celsius
+
+
+def controlFan( minCelsius=40, maxCelsius=44):
+  fanpin = gpiopin('PD14')
+  
+  while True:
+    Temperature = int(sysTemperature())
+    if Temperature >= maxCelsius and fanpin.read()=='0':
+      sylog("%s deg, fan on" % Temperature)
+      fanpin.write(1)
+    elif Temperature <= minCelsius and fanpin.read()=='1':
+      sylog("%s deg, fan off" % Temperature)
+      fanpin.write(0)
+    
+    time.sleep(1)
+
+
+controlFan()
